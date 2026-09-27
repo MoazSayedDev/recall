@@ -9,4 +9,9 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get('ai')
+  async ai() {
+    return this.appService.ai();
+  }
 }
