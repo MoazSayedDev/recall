@@ -15,8 +15,13 @@ export class AppService {
     const interaction = await this.gemini.interactions.create({
       model: 'gemini-3.8-flash',
       input: 'Explain how AI works in a few words',
-    });
-
-    return interaction.output_text;
+      stream: true,
+      // tools: [{ type: "google_search" }]
+    }); 
+      for await (const event of interaction) {
+          console.log(event);
+        }
+    return "ok"
+    // return interaction.output_text;
   }
 }
