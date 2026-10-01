@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PDFDocumentProxy } from 'pdfjs-dist';
+import pdfParse from 'pdf-parse';
 
 @Injectable()
 export class DocumentExtractionService {
@@ -18,25 +18,7 @@ export class DocumentExtractionService {
   }
 
   private async extractPdfText(buffer: Buffer): Promise<string> {
-    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    const data = new Uint8Array(buffer);
-    const pdf = await pdfjsLib.getDocument({ data }).promise;
-    const pages: string[] = [];
-
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-      const page = await pdf.getPage(pageNumber);
-      const content = await page.getTextContent();
-      const pageText = content.items
-        .map((item: any) => ('str' in item ? item.str : ''))
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (pageText) {
-        pages.push(pageText);
-      }
-    }
-
-    return pages.join('\n\n');
+    const result = await pdfParse(buffer);
+    return result.text.replace(/\s+/g, ' ').trim();
   }
 }
