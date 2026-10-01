@@ -11,7 +11,7 @@ services:
       - .env
 
     volumes:
--      - .:/src
-      - /app/node_modules
+        - .:/src
+        - /app/node_modules
 
     command: npm run start:dev
