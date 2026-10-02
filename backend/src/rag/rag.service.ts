@@ -33,7 +33,6 @@ export class RagService {
         vector: vectors[index],
       })),
     );
-
     return {
       documentId,
       filename: file.originalname,
@@ -58,7 +57,7 @@ export class RagService {
       .join('\n\n');
 
     const answer = await this.geminiService.generateText({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.8-flash',
       prompt: `Answer the user question using only the provided context. If the context does not contain the answer, say so clearly.\n\nContext:\n${context}\n\nQuestion:\n${question}`,
       systemInstruction:
         'You are a helpful answer engine. Use the provided context only and cite the source file names when relevant.',

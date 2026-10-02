@@ -16,6 +16,7 @@ export class RagController {
   @Post('documents/upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(@UploadedFile() file: Express.Multer.File) {
+    console.log(' Received file upload request:', file?.originalname);
     if (!file) {
       throw new BadRequestException('A file upload is required.');
     }
@@ -26,11 +27,13 @@ export class RagController {
   @Post('rag/documents/upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocumentAlias(@UploadedFile() file: Express.Multer.File) {
+    console.log('RAG Received file upload request:', file?.originalname);
     return this.uploadDocument(file);
   }
 
   @Post('query')
   async query(@Body() body: { question?: string; documentId?: string; topK?: number }) {
+    console.log('Received query request:', body);
     if (!body?.question) {
       throw new BadRequestException('A question is required.');
     }
@@ -40,6 +43,7 @@ export class RagController {
 
   @Post('rag/query')
   async queryAlias(@Body() body: { question?: string; documentId?: string; topK?: number }) {
+    console.log('RAG Received query request:', body);
     return this.query(body);
   }
 }

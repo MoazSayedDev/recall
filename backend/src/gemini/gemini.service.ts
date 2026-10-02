@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 @Injectable()
 export class GeminiService {
   private readonly client: GoogleGenAI;
+  private readonly maxRetries = 5;
 
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -20,6 +21,26 @@ export class GeminiService {
     return this.client.models;
   }
 
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+
+        if (attempt === this.maxRetries) {
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error('Gemini request failed after 5 attempts');
+  }
+
   async generateText(options: {
     prompt: string;
     model?: string;
@@ -27,27 +48,31 @@ export class GeminiService {
   }): Promise<string> {
     const model = options.model ?? 'gemini-2.0-flash';
 
-    const response = await this.client.models.generateContent({
-      model,
-      contents: options.prompt,
-      config: options.systemInstruction
-        ? {
-            systemInstruction: options.systemInstruction,
-          }
-        : undefined,
-    });
+    const response = await this.withRetry(() =>
+      this.client.models.generateContent({
+        model,
+        contents: options.prompt,
+        config: options.systemInstruction
+          ? {
+              systemInstruction: options.systemInstruction,
+            }
+          : undefined,
+      }),
+    );
 
     return response.text ?? '';
   }
 
   async embedText(text: string, outputDimensionality = 768): Promise<number[]> {
-    const response = await this.client.models.embedContent({
-      model: 'gemini-embedding-001',
-      contents: text,
-      config: {
-        outputDimensionality,
-      },
-    });
+    const response = await this.withRetry(() =>
+      this.client.models.embedContent({
+        model: 'gemini-embedding-001',
+        contents: text,
+        config: {
+          outputDimensionality,
+        },
+      }),
+    );
 
     return response.embeddings?.[0]?.values ?? [];
   }

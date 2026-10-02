@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QdrantClient } from '@qdrant/js-client-rest';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class QdrantService implements OnModuleInit {
@@ -25,11 +26,9 @@ export class QdrantService implements OnModuleInit {
   async onModuleInit() {
     await this.ensureCollection();
   }
-
   async ensureCollection() {
     try {
       await this.client.getCollection(this.collectionName);
-      return;
     } catch {
       await this.client.createCollection(this.collectionName, {
         vectors: {
@@ -38,6 +37,12 @@ export class QdrantService implements OnModuleInit {
         },
       });
     }
+
+    await this.client.createPayloadIndex(this.collectionName, {
+      field_name: 'documentId',
+      field_schema: 'keyword',
+      wait: true,
+    });
   }
 
   async storeDocumentChunks(
@@ -48,7 +53,7 @@ export class QdrantService implements OnModuleInit {
     await this.ensureCollection();
 
     const points = chunks.map((chunk, index) => ({
-      id: `${documentId}-${index}`,
+      id: randomUUID(),
       vector: chunk.vector,
       payload: {
         documentId,
