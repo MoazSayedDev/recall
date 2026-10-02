@@ -66,7 +66,7 @@ function App() {
       setIsAsking(true);
       setQueryError('');
 
-      const result = await apiFetch<QueryResponse>('/rag/query', {
+      const result = await apiFetch<QueryResponse>('/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

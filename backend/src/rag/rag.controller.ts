@@ -24,13 +24,6 @@ export class RagController {
     return this.ragService.uploadDocument(file);
   }
 
-  @Post('rag/documents/upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadDocumentAlias(@UploadedFile() file: Express.Multer.File) {
-    console.log('RAG Received file upload request:', file?.originalname);
-    return this.uploadDocument(file);
-  }
-
   @Post('query')
   async query(@Body() body: { question?: string; documentId?: string; topK?: number }) {
     console.log('Received query request:', body);
@@ -39,11 +32,5 @@ export class RagController {
     }
 
     return this.ragService.query(body.question, body.topK ?? 5, body.documentId);
-  }
-
-  @Post('rag/query')
-  async queryAlias(@Body() body: { question?: string; documentId?: string; topK?: number }) {
-    console.log('RAG Received query request:', body);
-    return this.query(body);
   }
 }
