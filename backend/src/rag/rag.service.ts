@@ -16,6 +16,12 @@ export class RagService {
     private readonly geminiService: GeminiService,
   ) {}
 
+
+  /**
+   * Uploads a document to the RAG system.
+   * @param file The file to upload.
+   * @returns A promise that resolves to the upload result.
+   */
   async uploadDocument(file: Express.Multer.File) {
     const extractedText = await this.extractionService.extractText(file);
     const chunks = this.chunkingService.chunkText(extractedText);
@@ -43,6 +49,14 @@ export class RagService {
     };
   }
 
+
+  /**
+   * Queries the RAG system with a question.
+   * @param question The question to ask.
+   * @param topK The number of top results to return.
+   * @param documentId The ID of the document to filter by.
+   * @returns A promise that resolves to the query results.
+   */
   async query(question: string, topK = 5, documentId?: string) {
     if (!question?.trim()) {
       throw new Error('A question is required.');

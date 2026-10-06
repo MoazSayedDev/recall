@@ -23,9 +23,17 @@ export class QdrantService implements OnModuleInit {
     });
   }
 
+  /**
+   * Initializes the Qdrant service and ensures the collection exists.
+   */
   async onModuleInit() {
     await this.ensureCollection();
   }
+
+
+  /**
+   * Ensures that the Qdrant collection exists.
+   */
   async ensureCollection() {
     try {
       await this.client.getCollection(this.collectionName);
@@ -45,6 +53,15 @@ export class QdrantService implements OnModuleInit {
     });
   }
 
+
+
+  /**
+   * Stores document chunks in the Qdrant collection.
+   * @param documentId The ID of the document.
+   * @param fileName The name of the file.
+   * @param chunks The chunks to store.
+   * @returns A promise that resolves to the number of inserted points.
+   */
   async storeDocumentChunks(
     documentId: string,
     fileName: string,
@@ -71,6 +88,14 @@ export class QdrantService implements OnModuleInit {
     return { inserted: points.length };
   }
 
+
+  /**
+   * Searches for similar documents in the Qdrant collection.
+   * @param questionVector The vector of the question.
+   * @param topK The number of top results to return.
+   * @param documentId The ID of the document to filter by.
+   * @returns A promise that resolves to the search results.
+   */
   async searchSimilar(questionVector: number[], topK = 5, documentId?: string) {
     await this.ensureCollection();
 

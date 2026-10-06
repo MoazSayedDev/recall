@@ -2,6 +2,13 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ChunkingService {
+
+  /**
+   * Splits the given text into chunks based on the specified options.
+   * @param text The text to chunk.
+   * @param options The chunking options, including maxChars and overlapChars.
+   * @returns An array of text chunks.
+   */
   chunkText(
     text: string,
     options: { maxChars?: number; overlapChars?: number } = {},

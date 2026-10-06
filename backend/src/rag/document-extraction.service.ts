@@ -3,6 +3,12 @@ import pdfParse from 'pdf-parse';
 
 @Injectable()
 export class DocumentExtractionService {
+
+  /**
+   * Extracts text from a document.
+   * @param file The file to extract text from.
+   * @returns A promise that resolves to the extracted text.
+   */
   async extractText(file: Express.Multer.File): Promise<string> {
     const filename = file.originalname.toLowerCase();
 
@@ -17,6 +23,11 @@ export class DocumentExtractionService {
     throw new Error('Unsupported file type. Upload a PDF or text file.');
   }
 
+  /**
+   * Extracts text from a PDF file.
+   * @param buffer The buffer containing the PDF file.
+   * @returns A promise that resolves to the extracted text.
+   */
   private async extractPdfText(buffer: Buffer): Promise<string> {
     console.log('Extracting text from PDF...');
     const result = await pdfParse(buffer);
