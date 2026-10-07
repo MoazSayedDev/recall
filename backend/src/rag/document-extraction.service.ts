@@ -29,9 +29,7 @@ export class DocumentExtractionService {
    * @returns A promise that resolves to the extracted text.
    */
   private async extractPdfText(buffer: Buffer): Promise<string> {
-    console.log('Extracting text from PDF...');
     const result = await pdfParse(buffer);
-    console.log('PDF text extraction complete.', result.text);
     return result.text.replace(/\s+/g, ' ').trim();
   }
 }
