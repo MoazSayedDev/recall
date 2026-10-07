@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiFetch } from './api/client';
+import { apiFetch, apiFetchSse } from './api/client';
 import { QuestionPanel } from './components/QuestionPanel';
 import { UploadPanel } from './components/UploadPanel';
 import type { QueryResponse, UploadResponse } from './types/rag';
@@ -66,19 +66,32 @@ function App() {
       setIsAsking(true);
       setQueryError('');
 
-      const result = await apiFetch<QueryResponse>('/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      setAnswer('');
+      setSources([]);
+      await apiFetchSse<{
+        type: 'sources' | 'token' | 'done';
+        sources?: QueryResponse['sources'];
+        text?: string;
+      }>(
+        '/query/stream',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question,
+            documentId,
+          }),
         },
-        body: JSON.stringify({
-          question,
-          documentId,
-        }),
-      });
-
-      setAnswer(result.answer || 'No answer returned.');
-      setSources(result.sources || []);
+        (event) => {
+          if (event.type === 'sources') {
+            setSources(event.sources || []);
+          } else if (event.type === 'token') {
+            setAnswer((current) => current + (event.text || ''));
+          }
+        },
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to ask the question.';
       setQueryError(message);
@@ -90,27 +103,38 @@ function App() {
   return (
     <main className="page">
       <div className="container">
-        <h1>Recall RAG Test</h1>
+        <header className="hero">
+          <div className="brand-mark">R</div>
+          <div>
+            <p className="eyebrow">RECALL</p>
+            <h1>Ask your documents</h1>
+            <p className="hero-copy">Upload a file, then get a clear answer grounded in its content.</p>
+          </div>
+        </header>
 
-        <UploadPanel
-          file={file}
-          uploadResult={uploadResult}
-          isUploading={isUploading}
-          error={uploadError}
-          onFileChange={handleFileChange}
-          onUpload={handleUpload}
-        />
+        <div className="workspace">
+          <UploadPanel
+            file={file}
+            uploadResult={uploadResult}
+            isUploading={isUploading}
+            error={uploadError}
+            onFileChange={handleFileChange}
+            onUpload={handleUpload}
+          />
 
-        <QuestionPanel
-          question={question}
-          answer={answer}
-          sources={sources}
-          isAsking={isAsking}
-          error={queryError}
-          documentId={documentId}
-          onQuestionChange={setQuestion}
-          onAsk={handleAsk}
-        />
+          <QuestionPanel
+            question={question}
+            answer={answer}
+            sources={sources}
+            isAsking={isAsking}
+            error={queryError}
+            documentId={documentId}
+            onQuestionChange={setQuestion}
+            onAsk={handleAsk}
+          />
+        </div>
+
+        <footer>Private workspace · Your answers are based only on the uploaded document</footer>
       </div>
     </main>
   );

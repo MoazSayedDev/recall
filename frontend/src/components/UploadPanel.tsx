@@ -20,34 +20,32 @@ export function UploadPanel({
 }: UploadPanelProps) {
   return (
     <section className="panel">
-      <h2>1. Document upload</h2>
+      <div className="panel-heading">
+        <span className="step">01</span>
+        <div>
+          <h2>Upload a document</h2>
+          <p>PDF or TXT files up to your workspace limit.</p>
+        </div>
+      </div>
 
       <label className="file-picker">
-        <span>Select PDF or TXT</span>
+        <span className="upload-icon">↑</span>
+        <strong>{file ? 'Change document' : 'Choose a document'}</strong>
+        <small>{file ? file.name : 'Drop a PDF or TXT file here, or browse'}</small>
         <input type="file" accept=".pdf,.txt" onChange={onFileChange} />
       </label>
 
-      <div className="actions">
-        <button type="button" onClick={onUpload} disabled={!file || isUploading}>
-          {isUploading ? 'Uploading...' : 'Upload'}
-        </button>
-      </div>
-
-      {file && <p className="meta">Selected file: {file.name}</p>}
+      <button className="primary-button full-button" type="button" onClick={onUpload} disabled={!file || isUploading}>
+        {isUploading ? 'Uploading…' : 'Upload document'}
+      </button>
 
       {error && <p className="error">{error}</p>}
 
       {uploadResult && (
         <div className="result-box">
-          <p>
-            <strong>Uploaded:</strong> {uploadResult.filename}
-          </p>
-          <p>
-            <strong>Chunks:</strong> {uploadResult.chunks}
-          </p>
-          <p>
-            <strong>Document ID:</strong> {uploadResult.documentId}
-          </p>
+          <div className="success-line"><span>✓</span> Document ready</div>
+          <p className="file-name">{uploadResult.filename}</p>
+          <p className="meta">{uploadResult.chunks} searchable chunks created</p>
         </div>
       )}
     </section>

@@ -22,11 +22,17 @@ export function QuestionPanel({
   onAsk,
 }: QuestionPanelProps) {
   return (
-    <section className="panel">
-      <h2>2. Ask a question</h2>
+    <section className="panel question-panel">
+      <div className="panel-heading">
+        <span className="step">02</span>
+        <div>
+          <h2>Ask a question</h2>
+          <p>Ask anything about your uploaded document.</p>
+        </div>
+      </div>
 
       <label className="field-label" htmlFor="question-input">
-        Ask something about the document
+        Your question
       </label>
       <textarea
         id="question-input"
@@ -36,19 +42,19 @@ export function QuestionPanel({
         rows={4}
       />
 
-      <div className="actions">
-        <button type="button" onClick={onAsk} disabled={!question.trim() || !documentId || isAsking}>
-          {isAsking ? 'Asking...' : 'Ask'}
+      <div className="question-actions">
+        <span className="meta">{documentId ? 'Ready to search' : 'Upload a document to continue'}</span>
+        <button className="primary-button" type="button" onClick={onAsk} disabled={!question.trim() || !documentId || isAsking}>
+          {isAsking ? 'Thinking…' : 'Get answer  →'}
         </button>
       </div>
 
-      {!documentId && <p className="meta">Upload a document before asking a question.</p>}
       {error && <p className="error">{error}</p>}
 
       {answer && (
         <div className="result-box">
           <h3>Answer</h3>
-          <p>{answer}</p>
+          <p className="answer-text">{answer}{isAsking && <span className="cursor" />}</p>
         </div>
       )}
 

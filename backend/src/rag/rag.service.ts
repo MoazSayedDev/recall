@@ -58,33 +58,62 @@ export class RagService {
    * @returns A promise that resolves to the query results.
    */
   async query(question: string, topK = 5, documentId?: string) {
+    const { context, hits } = await this.retrieveContext(question, topK, documentId);
+    const answer = await this.geminiService.generateText({
+      model: 'gemini-3.8-flash',
+      prompt: this.buildPrompt(question, context),
+      systemInstruction: this.systemInstruction,
+    });
+
+    return {
+      answer,
+      sources: this.toSources(hits),
+    };
+  }
+
+  async *queryStream(question: string, topK = 5, documentId?: string) {
+    const { context, hits } = await this.retrieveContext(question, topK, documentId);
+    const sources = this.toSources(hits);
+
+    yield { type: 'sources' as const, sources };
+    for await (const text of this.geminiService.generateTextStream({
+      model: 'gemini-3.8-flash',
+      prompt: this.buildPrompt(question, context),
+      systemInstruction: this.systemInstruction,
+    })) {
+      yield { type: 'token' as const, text };
+    }
+    yield { type: 'done' as const };
+  }
+
+  private async retrieveContext(question: string, topK: number, documentId?: string) {
     if (!question?.trim()) {
       throw new Error('A question is required.');
     }
 
     const questionVector = await this.embeddingService.embedText(question);
     const hits = await this.qdrantService.searchSimilar(questionVector, topK, documentId);
-
     const context = hits
       .map((hit) => hit.payload?.text || '')
       .filter(Boolean)
       .join('\n\n');
 
-    const answer = await this.geminiService.generateText({
-      model: 'gemini-3.8-flash',
-      prompt: `Answer the user question using only the provided context. If the context does not contain the answer, say so clearly.\n\nContext:\n${context}\n\nQuestion:\n${question}`,
-      systemInstruction:
-        'You are a helpful answer engine. Use the provided context only and cite the source file names when relevant.',
-    });
+    return { context, hits };
+  }
 
-    return {
-      answer,
-      sources: hits.map((hit) => ({
-        id: hit.id,
-        score: hit.score,
-        fileName: hit.payload?.fileName,
-        chunkIndex: hit.payload?.chunkIndex,
-      })),
-    };
+  private buildPrompt(question: string, context: string) {
+    return `Answer the user question using only the provided context. If the context does not contain the answer, say so clearly.\n\nContext:\n${context}\n\nQuestion:\n${question}`;
+  }
+
+  private readonly systemInstruction =
+    'You are a helpful answer engine. Use the provided context only and cite the source file names when relevant.';
+
+  private toSources(hits: Awaited<ReturnType<QdrantService['searchSimilar']>>) {
+    return hits.map((hit) => ({
+      id: hit.id,
+      score: hit.score,
+      fileName: hit.payload?.fileName,
+      chunkIndex: hit.payload?.chunkIndex,
+    }));
   }
 }

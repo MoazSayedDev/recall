@@ -63,6 +63,31 @@ export class GeminiService {
     return response.text ?? '';
   }
 
+  async *generateTextStream(options: {
+    prompt: string;
+    model?: string;
+    systemInstruction?: string;
+  }): AsyncGenerator<string> {
+    const model = options.model ?? 'gemini-2.0-flash';
+    const stream = await this.withRetry(() =>
+      this.client.models.generateContentStream({
+        model,
+        contents: options.prompt,
+        config: options.systemInstruction
+          ? {
+              systemInstruction: options.systemInstruction,
+            }
+          : undefined,
+      }),
+    );
+
+    for await (const chunk of stream) {
+      if (chunk.text) {
+        yield chunk.text;
+      }
+    }
+  }
+
   async embedText(text: string, outputDimensionality = 768): Promise<number[]> {
     const response = await this.withRetry(() =>
       this.client.models.embedContent({
