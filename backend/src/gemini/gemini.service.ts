@@ -41,28 +41,6 @@ export class GeminiService {
     throw lastError instanceof Error ? lastError : new Error('Gemini request failed after 5 attempts');
   }
 
-  async generateText(options: {
-    prompt: string;
-    model?: string;
-    systemInstruction?: string;
-  }): Promise<string> {
-    const model = options.model ?? 'gemini-2.0-flash';
-
-    const response = await this.withRetry(() =>
-      this.client.models.generateContent({
-        model,
-        contents: options.prompt,
-        config: options.systemInstruction
-          ? {
-              systemInstruction: options.systemInstruction,
-            }
-          : undefined,
-      }),
-    );
-
-    return response.text ?? '';
-  }
-
   async *generateTextStream(options: {
     prompt: string;
     model?: string;

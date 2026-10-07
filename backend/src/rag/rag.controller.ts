@@ -25,15 +25,6 @@ export class RagController {
     return this.ragService.uploadDocument(file);
   }
 
-  @Post('query')
-  async query(@Body() body: { question?: string; documentId?: string; topK?: number }) {
-    if (!body?.question) {
-      throw new BadRequestException('A question is required.');
-    }
-
-    return this.ragService.query(body.question, body.topK ?? 5, body.documentId);
-  }
-
   @Post('query/stream')
   async streamQuery(
     @Body() body: { question?: string; documentId?: string; topK?: number },

@@ -50,27 +50,6 @@ export class RagService {
   }
 
 
-  /**
-   * Queries the RAG system with a question.
-   * @param question The question to ask.
-   * @param topK The number of top results to return.
-   * @param documentId The ID of the document to filter by.
-   * @returns A promise that resolves to the query results.
-   */
-  async query(question: string, topK = 5, documentId?: string) {
-    const { context, hits } = await this.retrieveContext(question, topK, documentId);
-    const answer = await this.geminiService.generateText({
-      model: 'gemini-3.8-flash',
-      prompt: this.buildPrompt(question, context),
-      systemInstruction: this.systemInstruction,
-    });
-
-    return {
-      answer,
-      sources: this.toSources(hits),
-    };
-  }
-
   async *queryStream(question: string, topK = 5, documentId?: string) {
     const { context, hits } = await this.retrieveContext(question, topK, documentId);
     const sources = this.toSources(hits);
